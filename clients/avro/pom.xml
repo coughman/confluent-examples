@@ -25,7 +25,7 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <properties>
     <!-- Keep versions as properties to allow easy modification -->
     <java.version>8</java.version>
-    <avro.version>1.9.1</avro.version>
+    <avro.version>1.9.2</avro.version>
     <gson.version>2.2.4</gson.version>
     <!-- Maven properties for compilation -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -176,12 +176,14 @@ http://maven.apache.org/xsd/maven-4.0.0.xsd">
                   <configuration>
                       <encoding>UTF-8</encoding>
                       <consoleOutput>true</consoleOutput>
-                      <failsOnError>false</failsOnError>
-                      <failOnViolation>false</failOnViolation>
+                      <failsOnError>true</failsOnError>
+                      <failOnViolation>true</failOnViolation>
                       <includeResources>false</includeResources>
                       <includeTestResources>false</includeTestResources>
                       <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                      <excludes>io/confluent/examples/streams/avro/**</excludes>
+                      <excludes>
+                        io/confluent/examples/streams/avro/**,io/confluent/examples/AvroProducerPerformance.java
+                      </excludes>
                       <configLocation>checkstyle.xml</configLocation>
                   </configuration>
                   <goals>
