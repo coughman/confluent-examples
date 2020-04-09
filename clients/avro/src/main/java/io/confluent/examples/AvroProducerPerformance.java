@@ -66,9 +66,6 @@ public class AvroProducerPerformance {
             boolean transactionsEnabled =  0 < transactionDurationMs;
             String schemaPath = res.getString("schemaPath");
 
-            // since default value gets printed with the help text, we are escaping \n there and replacing it with correct value here.
-            //String payloadDelimiter = res.getString("payloadDelimiter").equals("\\n") ? "\n" : res.getString("payloadDelimiter");
-
             if (schemaPath == null || schemaPath.isEmpty())
                 throw new ArgumentParserException("--schema-path must be specified.", parser);
             
@@ -83,13 +80,10 @@ public class AvroProducerPerformance {
                 if (Files.notExists(path) || Files.size(path) == 0)  {
                     throw new  IllegalArgumentException("File does not exist or empty file provided.");
                 }
-
-                // for (String payload : payloadList) {
-                //     payloadByteList.add(payload.getBytes(StandardCharsets.UTF_8));
-                // }
             }
 
             Properties props = new Properties();
+            // set default schema registry URL
             props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
 
             if (producerConfig != null) {
@@ -117,12 +111,6 @@ public class AvroProducerPerformance {
             /* setup perf test */
             //byte[] payload = null;
             Random random = new Random(0);
-            // if (recordSize != null) {
-            //     payload = new byte[recordSize];
-            //     for (int i = 0; i < payload.length; ++i)
-            //         payload[i] = (byte) (random.nextInt(26) + 65);
-            // }
-
 
             Schema.Parser schemaParser = new Schema.Parser();
             Schema schema = schemaParser.parse(new File(schemaPath));
@@ -163,7 +151,6 @@ public class AvroProducerPerformance {
 
             for (long i = 0; i < numRecords; i++) {
                 avroRecord = payloadList.get(random.nextInt(payloadList.size()));
-//                System.out.println("avro record: " + avroRecord.toString());
                 
                 if (transactionsEnabled && currentTransactionSize == 0) {
                     producer.beginTransaction();
@@ -173,7 +160,6 @@ public class AvroProducerPerformance {
                 record = new ProducerRecord<>(topicName, avroRecord);
 
                 long sendStartMs = System.currentTimeMillis();
-                
 
                 Callback cb = stats.nextCompletion(sendStartMs,  0, stats);
                 producer.send(record, cb);
@@ -259,24 +245,13 @@ public class AvroProducerPerformance {
 
         payloadOptions.addArgument("--payload-file")
                 .action(store())
-                .required(false)
+                .required(true)
                 .type(String.class)
                 .metavar("PAYLOAD-FILE")
                 .dest("payloadFile")
                 .help("file to read the message payloads from. This works only for UTF-8 encoded text files. " +
                         "Payloads will be read from this file and a payload will be randomly selected when sending messages. " +
                         "Note that you must provide exactly one of --record-size or --payload-file.");
-
-        parser.addArgument("--payload-delimiter")
-                .action(store())
-                .required(false)
-                .type(String.class)
-                .metavar("PAYLOAD-DELIMITER")
-                .dest("payloadDelimiter")
-                .setDefault("\\n")
-                .help("provides delimiter to be used when --payload-file is provided. " +
-                        "Defaults to new line. " +
-                        "Note that this parameter will be ignored if --payload-file is not provided.");
 
         parser.addArgument("--throughput")
                 .action(store())
